@@ -160,7 +160,28 @@ ggplot(data=treino,aes(x=comprimento,y=profundidade_maxima,color=especie))+
     geom_vline(xintercept=c(22,27))
 
 #h)
+respostas<-c() #Para um vizinho mais próximo
+for(j in 1:nrow(teste)){
+    distancia<-c()
+    for(k in 1:nrow(treino)){
+        distancia[k]<-sqrt(sum((teste[j,c(2,3)]-treino[k,c(2,3)])**2))
+    }
+    respostas[j]<-as.character(treino$especie[order(distancia)[1]]) 
+}
+KNN1<-mean(respostas==teste$especie)
+KNN1 #Precisão de 96%
 
+respostas<-c() #Para os 3 vizinhos mais proximos
+for(j in 1:nrow(teste)){
+    distancia<-c()
+    for(k in 1:nrow(treino)){
+        distancia[k]<-sqrt(sum((teste[j,c(2,3)]-treino[k,c(2,3)])**2))
+    }
+    x<-as.character(treino$especie[order(distancia)[c(1,2,3)]])
+    respostas[j]<-x[duplicated(x)]
+}
+KNN3<-mean(respostas==teste$especie)
+KNN3 #Precisão de 96%
 
 #Exercício 4. O conjunto cogumelos.csv contém informações sobre 23 espécies de cogumelos dos gêneros Agaricus e Lepiota, retiradas do Guia de Campo da Sociedade Audubon para Cogumelos da América do Norte (1981). Cada espécie é classificada (class) como comestível (edible = e) ou venenosa (poisonous = p). Detalhes sobre cada uma das variáveis do conjunto estão no Kaggle ou em UC Irvine Machine Learning Repository.
 #Embaralhe o conjunto e, em seguida, separe-o em treinamento (80%) e teste (20%). Estude o conjunto de treinamento a partir de uma análise gráfica (nesta parte faça algumas perguntas interessantes e encontre um gráfico que ajudará na sua resposta; exemplos: quantas espécies venenosas há no treinamento? e comestíveis?;a forma, a cor ou o odor pode influenciar na classificação? etc). A partir das conclusões e observações obtidas, crie um modelo de árvore de decisão para classificar um cogumelo como comestível ou venenoso. Avalie a taxa de acerto e comente o resultado obtido.
