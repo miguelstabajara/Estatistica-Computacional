@@ -228,3 +228,22 @@ for(j in 1:nrow(teste)){
 
 mean(respostas==teste$species)
 
+                            #Aula 07/02
+iris
+cor(iris$Sepal.Length,iris$Sepal.Width) #Cor é uma função que retorna o coeficiente de correlação, quanto mais próximo de 1(em módulo, tanto perto de 1 quanto de -1), maior a relação linear entre os elementos
+ggplot(data=iris,aes(x=Sepal.Length,y=Sepal.Width))+
+    geom_point()
+
+cor(iris$Petal.Length,iris$Petal.Width) 
+ggplot(data=iris,aes(x=Petal.Length,y=Petal.Width))+
+    geom_point()
+
+cor(iris[,1:4]) #Pegar as informações das flores com correlações mais próximas de 1 e utilizar para filtrar os dados
+
+#Buscar itens correlacionados para usar, itens não correlacionados podem atrapalhar as previsões
+
+lm(iris$Petal.Length ~iris$Petal.Width) 
+#Petal.Length = 2230*Petal.Width+1084
+#Tomar cuidado para usar correlação por conta da causa
+
+
