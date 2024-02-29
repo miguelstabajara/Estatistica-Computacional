@@ -246,4 +246,223 @@ lm(iris$Petal.Length ~iris$Petal.Width)
 #Petal.Length = 2230*Petal.Width+1084
 #Tomar cuidado para usar correlação por conta da causa
 
+#Aula 09/02
+dados <- read.csv("cancer.csv", header = TRUE)
+str(dados)
+dados$diagnosis <- as.factor(dados$diagnosis)
+
+dados <- dados[sample(nrow(dados)),]
+
+n <- round(0.8*nrow(dados))
+n
+
+treinamento <- dados[1:n,]
+teste <- dados[-(1:n),]
+
+ggplot(data = treinamento, aes(x = diagnosis))+
+    geom_bar()
+
+colnames(dados)
+
+ggplot(data = treinamento, aes(y = radius_mean))+
+    geom_boxplot()+
+    facet_wrap(~diagnosis)
+
+ggplot(data = treinamento, aes(x = concavity_mean, y = texture_mean, color = diagnosis))+
+    geom_point()
+
+cor(treinamento[,-1])
+
+library(class)
+?knn
+
+#determinando o treinamento, o teste e escalonando os dados
+treinamento.X <- scale(treinamento[,-1])
+teste.X <- scale(teste[,-1])
+treinamento.Y <- treinamento[,1]
+
+#usando a funcao knn para construir o modelo com k=3 vizinhos
+modelo.knn.cancer <- knn(train = treinamento.X, test = teste.X, cl = treinamento.Y, k = 3)
+
+mean(modelo.knn.cancer == teste$diagnosis)
+
+#matriz de confusao para determinar os falsos positivos e os falsos negativos.
+table(modelo.knn.cancer, teste$diagnosis)
+
+                            #Aula 16/02
+
+dados<-iris[sample(nrow(iris)),]
+n<-round(nrow(dados)*0.8)
+
+treino<-dados[1:n,]
+teste<-dados[-(1:n),]
+passos_intervalo<-n/10
+
+
+intervalos<-seq(from=1,to=n,by=passos_intervalo)
+intervalos<-c(intervalos,n+1)
+intervalos
+
+library(class)
+acertos<-rep(0,times=10)
+indices<-0
+for(j in 1:(length(intervalos)-1)){
+    indices<-intervalos[j]:(intervalos[j+1]-1)
+    teste_cv<-treino[indices,]    #Cross Validation
+    treino_cv<-treino[-indices,]
+    acertos_atual<-c()
+    for(k in 1:10){
+        modelo.knn<-knn(train=treino_cv[,-5],test=teste_cv[,-5],cl=treino_cv$Species, k)
+        acertos_atual[k]<-mean(modelo.knn==teste_cv$Species)
+    }
+    acertos<-acertos+acertos_atual
+}
+media_acertos<-acertos/10
+media_acertos
+
+plot(x=1:10,y=media_acertos,type="l")
+modelo_final<-knn(train=treino[,-5],test=teste[,-5],cl=treino$Species,k=6)
+mean(modelo_final==teste$Species)
+
+#Raspagem de dados da web
+library(rvest)
+library(dplyr)
+
+url <- "https://www.bbc.com/portuguese/brasil-36473280"
+
+html<-read_html(url)
+
+html |>
+    html_element("h1") |>
+    html_text2()
+
+html |>
+    html_elements("a") |>
+    html_text2()
+
+url<-"https://www.imdb.com/chart/top/"
+html<-read_html(url)
+dados<-(html |>
+    html_elements("h3") |>
+    html_text2())[-1]
+dados[-(251:262)] #Pega todos os nomes e elimina os lixos
+
+url<-"https://www.imdb.com/chart/top/"
+html<-read_html(url)
+dados<-(html |>
+            html_elements("ul.ipc-metadata-list") |>
+            html_elements("li") |>
+            html_text2())
+dados
+
+
+                        #Aula 21/02 - Raspagem de dados
+url<-"https://www.imdb.com/chart/top/"
+
+html<-read_html(url)
+titulos<-(html |>
+            html_elements("ul.ipc-metadata-list") |>
+            html_elements("li") |>
+            html_elements("h3") |>
+            html_text2()|>
+            str_replace("\\d+\\.\\s",""))
+titulos
+
+anos<-(html |>
+           html_elements("ul.ipc-metadata-list") |>
+           html_elements("li") |>
+           html_elements("span.sc-be6f1408-8:first-child") |>
+           html_text2())
+anos
+
+duracao<-(html |>
+           html_elements("ul.ipc-metadata-list") |>
+           html_elements("li") |>
+           html_elements("span.sc-be6f1408-8:nth-child(2)") |>
+           html_text2())
+duracao
+
+classificacao<-(html |>
+           html_elements("ul.ipc-metadata-list") |>
+           html_elements("li") |>
+           html_element("span.sc-be6f1408-8:nth-child(3)") |>
+           html_text2())
+classificacao
+
+dados<-data.frame(titulos,anos,duracao,classificacao)
+
+library(stringr)
+v<-c("21","ola",".3aw7")
+str_view(v,"\\d")
+str_view(v,"\\d+")
+
+getwd()
+write.csv(dados,file="top_250.csv") #Guarda o dataframe em uma planilha
+write.table(dados,file="top_250.txt",sep=",",row.names=FALSE)
+
+
+url<-"https://wisevoter.com/state-rankings/gun-violence-by-state/"
+html<-read_html(url)
+
+estados<-(html |>
+              html_elements("table.shdb-on-page-table") |>
+              html_table()|>
+              as.data.frame())
+estados<-estados[,-1]
+
+estados$Gun.Ownership.Rate<-as.numeric(str_replace(estados$Gun.Ownership.Rate,"%",""))
+
+str(estados)       
+
+estados$Gun.Death.Rate<-as.numeric(str_replace(estados$Gun.Death.Rate, " per 100k" ,""))
+
+estados$Red.or.Blue.State<-as.factor(estados$Red.or.Blue.State)
+
+ggplot(data=estados,aes(x= Gun.Ownership.Rate,y = Gun.Death.Rate, color = Red.or.Blue.State))+
+    geom_point()
+
+                                #Aula 28/02
+url<-"https://mathbits.com/MathBits/TISection/Statistics2/linearREAL.html"
+html<-read_html(url)
+
+dados<-(html|>
+            html_elements("table.blackbordergreen")|>
+            html_table()|>
+            as.data.frame())
+dados<-dados[-1,]
+colnames(dados)<-c("som","temperatura")
+dados$temperatura<-as.numeric(dados$temperatura)
+dados$som<-as.numeric(dados$som)
+dados$temperatura<-(dados$temperatura-32)*(5/9)
+
+cor(dados$temperatura,dados$som)
+cor(dados)
+
+modelo<-lm(data=dados,formula=som~temperatura) 
+ggplot(data=dados,aes(x=temperatura,y=som))+
+    geom_point()+
+    geom_smooth(method="lm",col="red",lwd=2)#Se adicionar ,se=FALSE a sombra de confiança some
+#som = 0.3654*temperatura+6.9553
+
+femur<-read.csv("femur.csv",header=TRUE)
+femur<-femur[,-1]
+which(femur[,1]=="Male")
+homem<-femur[which(femur[,1]=="Male"),]
+mulher<-femur[-which(femur[,1]=="Male"),]
+
+cor(mulher$altura,mulher$femur)
+modelo_mulher<-lm(data=mulher,formula=altura~femur)
+modelo_mulher
+ggplot(data=mulher,aes(x=altura,y=femur))+
+    geom_point()+
+    geom_smooth(method="lm",se=FALSE)
+
+cor(homem$altura,homem$femur)
+modelo_homem<-lm(data=homem,formula=altura~femur)
+modelo_homem
+ggplot(data=homem,aes(x=altura,y=femur))+
+    geom_point()+
+    geom_smooth(method="lm")
+    
+
 
