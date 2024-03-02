@@ -465,4 +465,41 @@ ggplot(data=homem,aes(x=altura,y=femur))+
     geom_smooth(method="lm")
     
 
+                              #Aula 01/03
+install(GGally) #Biblioteca importante
+library(GGally)
+library(ISLR2)
+ggcorr(iris[,-5],label=TRUE)
+
+dados<-Boston
+str(dados)
+ggcorr(dados,label=TRUE)
+
+modelo1<-lm(dados$medv~dados$lstat)
+#Equação da reta: medv = -0.95*lstat+34.55
+
+ggplot(data=dados,aes(x=medv,y=lstat))+
+    geom_point()+
+    geom_smooth(method="lm")
+
+summary(modelo1)
+hist(modelo1$residuals) #Não é simetrico, logo não é uma distribuição normal
+
+modelo2<-lm(data=dados,medv ~ lstat + rm) #2 variaveis dependentes-3 dimensões
+#Equação da reta: rad = 0.04703*tax-9.64827
+ggplot(data=dados,aes(x=rad,y=tax))+
+    geom_point()+
+    geom_smooth(method="lm")
+
+summary(modelo2) #Pr(>|t|) se ele for menor que 5, a variavel é importante pro modelo
+#Adjusted R-squared*100= porcentagem de previsão
+hist(modelo2$residuals) #Não é simetrico, logo não é uma distribuição normal
+
+modelo3<-lm(data=dados,medv ~ .)
+summary(modelo3)
+
+modelo4<-lm(data=dados,medv~ . -age - indus)
+summary(modelo4)
+
+predict(modelo4,interval="confidence")
 
