@@ -503,3 +503,114 @@ summary(modelo4)
 
 predict(modelo4,interval="confidence")
 
+                    #Aula 06/03
+#Conteudo para prova
+N<-20
+figurinhas<-1:N
+resultados<-c()
+probabilidades <- c(1,rep(3,times = 19)) #o primeiro tem três vezes menos chance de sair do que os outros elementos
+for(j in 1:10000){
+    minhas_figurinhas<-sample(figurinhas,size=N,replace = TRUE,prob = probabilidades)
+    while(length(unique(minhas_figurinhas))<N){
+        minhas_figurinhas<-c(minhas_figurinhas,sample(figurinhas,size = 1,prob = probabilidades))
+    }
+    resultados[j] = length(minhas_figurinhas)
+}
+mean(resultados)
+
+#Aula
+dados<-read.table(file = "marketing.txt",sep=";",header = TRUE)
+boxplot(dados[,1:3])
+
+ggcorr(dados,label=TRUE)
+
+modelo1<-lm(data=dados,sales~youtube)
+#sales = 0.04754*youtube+8.439
+summary(modelo1)
+hist(modelo1$residuals)
+
+dados$previsao<-predict(modelo1)
+ggplot(data = dados,aes(x=youtube,y=sales))+
+    geom_point()+
+    geom_smooth(method = "lm",se=FALSE)+
+    geom_segment(aes(x=youtube,xend=youtube,y=sales,yend=previsao),col ="red")
+#geom_segmente calcula o erro de cada ponto para a reta de regressão linear.
+
+modelo2<-lm(data=dados,sales~facebook)
+#sales = 0.20250*facebook+11.17397
+summary(modelo2)
+
+modelo3<-lm(data=dados,sales~newspaper)
+#sales = 0.05469*newspaper+14.82169
+summary(modelo3)
+
+modelo4<-lm(data=dados,sales~youtube+facebook+newspaper)
+#ou
+modelo4<-lm(data=dados[,-5],sales~.)
+summary(modelo4)
+#Newspaper atrapalha o modelo
+
+modelo5<-lm(data=dados,sales~youtube+facebook)
+summary(modelo5)
+#sales = 0.04575*youtube+0.18799*facebook+3.50532
+
+respostas<-c()
+jigsawOrdenado<-1:1000
+for(i in 1:10000000){
+    jigsaw<-sample(x=1:1000,size=1000,replace=FALSE)
+    if(sum(jigsaw==jigsawOrdenado)==1000) respostas[i]<-1
+    else respostas[i]=0
+}
+mean(respostas)
+
+                            #Aula 15/03
+marketing<-read.table(file = "marketing.txt",sep=";",header=TRUE)
+str(marketing)
+
+set.seed(123)
+marketing <- marketing[sample(nrow(marketing)),]
+
+n<-round(0.8*nrow(marketing))
+
+treino<-marketing[1:n,]
+teste<-marketing[-(1:n),]
+
+str(treino)
+cor(treino)
+
+modelo1<-lm(data=treino, formula = sales~youtube) #Somente o youtube 
+summary(modelo1)
+
+
+modelo2<-lm(data=treino,formula=sales~ .) #Todo mundo 
+summary(modelo2)
+
+modelo3<-lm(data=treino,formula=sales~.-newspaper) #Todo mundo menos o newspaper
+summary(modelo3)
+
+hist(modelo3$residuals) #Verificar se é uma distirbuição normal em função dos erros
+
+#Teste de normalidade
+shapiro.test(modelo3$residuals) #p-value grande(acima 5%) não rejeita a hipotese nula(importante que seja alto!!!!)
+qqnorm(modelo3$residuals)
+qqline(modelo3$residuals,col="red")
+
+treino$sqrt_youtube<-sqrt(treino$youtube)
+modelo4<-lm(data=treino,formula = sales~facebook+sqrt_youtube)
+summary(modelo4)
+shapiro.test(modelo4$residuals)
+qqnorm(modelo4$residuals)
+qqline(modelo4$residuals,col="red")
+
+#Previsao: sales = -1.87617+facebook*0.191107+sqrt(youtube)*1.06901
+
+marketing$sqrt_youtube<-sqrt(marketing$youtube)
+teste<-marketing[-(1:n),]
+
+previsao<-predict(modelo4,newdata=teste,interval="prediction")
+
+comparacao<-data.frame(inferior = previsao[,2],superior = previsao[,3],teste$sales)
+
+
+
+
