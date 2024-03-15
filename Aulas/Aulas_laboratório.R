@@ -611,6 +611,21 @@ previsao<-predict(modelo4,newdata=teste,interval="prediction")
 
 comparacao<-data.frame(inferior = previsao[,2],superior = previsao[,3],teste$sales)
 
+#Bibliotecas importantes
+library(rpart)
+library(rpart.plot)
+?rpart
+
+#Arvore
+
+iris<-iris[sample(nrow(iris)),]
+treino<-iris[1:120,]
+teste<-iris[121:150,]
+
+arvore.iris<-rpart(data=treino,formula=Species~.)
+rpart.plot(arvore.iris,extra = 101)
+
+
 
 
 
