@@ -611,19 +611,139 @@ previsao<-predict(modelo4,newdata=teste,interval="prediction")
 
 comparacao<-data.frame(inferior = previsao[,2],superior = previsao[,3],teste$sales)
 
+                          #Aula 22/03
 #Bibliotecas importantes
 library(rpart)
 library(rpart.plot)
-?rpart
 
-#Arvore
-
+#Arvore de decisão
+iris
+set.seed(123)
 iris<-iris[sample(nrow(iris)),]
-treino<-iris[1:120,]
-teste<-iris[121:150,]
+n<-round(nrow(iris)*0.8)
+treino<-iris[(1:n),]
+teste<-iris[-(1:n),]
 
 arvore.iris<-rpart(data=treino,formula=Species~.)
-rpart.plot(arvore.iris,extra = 101)
+rpart.plot(arvore.iris,extra=101)
+
+previsao<-predict(arvore.iris,newdata = teste,type="class")
+mean(previsao==teste$Species)
+
+                #Floresta de decisão
+#Demonstração
+amostra1<-treino[sample(1:120,replace=TRUE,size=120),]
+arvore.iris.1<-rpart(formula = Species~.,data=amostra1)
+
+amostra2<-treino[sample(1:120,replace=TRUE,size=120),]
+arvore.iris.2<-rpart(formula = Species~.,data=amostra2)
+
+amostra3<-treino[sample(1:120,replace=TRUE,size=120),]
+arvore.iris.3<-rpart(formula = Species~.,data=amostra3)
+
+amostra4<-treino[sample(1:120,replace=TRUE,size=120),]
+arvore.iris.4<-rpart(formula = Species~.,data=amostra4)
+
+par(mfrow = c(2,2))
+rpart.plot(arvore.iris.1,extra=101)
+rpart.plot(arvore.iris.2,extra=101)
+rpart.plot(arvore.iris.3,extra=101)
+rpart.plot(arvore.iris.4,extra=101)
+
+#Utilidade
+library(randomForest) #Biblioteca importante
+
+floresta.iris<-randomForest(formula=Species~.,data=treino,ntree=500)
+previsao.floresta<-predict(floresta.iris,newdata=teste,type="class")
+mean(previsao.floresta==teste$Species)
+
+plot(floresta.iris)
+
+#Exemplo
+
+treino<-read.csv("train_digits.csv")
+n<-as.numeric(treino[8,-1])
+str(treino)
+
+matriz<-matrix(n,ncol=28,byrow=TRUE)
+matriz
+image(matriz,col=gray.colors(2))
+
+nova_matriz <- matrix(1:784,ncol=28,byrow=TRUE)
+for(j in 1:28){
+    nova_matriz[j,]<-rev(matriz[,j])
+}
+image(nova_matriz,col=gray.colors(2))
+
+#Aula 27/03 importante para árvore e floresteas aleatórias
+
+library(randomForest)
+library(ggplot2)
+library(rpart)
+library(rpart.plot)
+#Tratamento dos dados
+dados<-read.table(file = "churn.txt",header=TRUE,sep=",")
+str(dados)
+dados<-dados[,-(c(1,2,3))]
+unique(dados$Geography)#Verificar os níveis para verificar se transforma em fator
+
+dados[,c(2,3,8,9,11)]<-lapply(dados[,c(2,3,8,9,11)],factor)
+str(dados)
+
+dados<-dados[sample(nrow(dados)),]
+n<-round(nrow(dados)*0.8)
+treino<-dados[(1:n),]
+teste<-dados[-(1:n),]
+
+#Os dois precisam ser próximos para respeitar as proporções após embaralhar
+prop.table(table(treino$Exited))
+prop.table(table(teste$Exited))
+#Análise gráfica dos dados
+ggplot(data=treino,aes(x=Exited))+
+    geom_bar()
+
+ggplot(data=treino,aes(x=Gender,fill=Exited))+
+    geom_bar()
+
+ggplot(data=treino,aes(x=Age,fill=Exited))+
+    geom_histogram()+
+    theme_minimal()
+
+ggplot(data=treino,aes(x=Age,fill=Exited))+
+    geom_density(alpha=0.5)
+
+#Árvore de decisão
+arvore.churn<-rpart(formula = Exited~.,data=treino,method="class")
+rpart.plot(arvore.churn,extra=101)
+
+previsao<-predict(arvore.churn,newdata=teste,type="class")
+mean(previsao==teste$Exited)
+
+#Floreste aleátoria
+floresta.churn<-randomForest(formula=Exited~.,data=treino,ntree=500, importance = TRUE)
+
+varImpPlot(floresta.churn) #Importante para ver dados mais úteis do modelo
+
+previsao.floresta<-predict(floresta.churn,newdata=teste,type="class")
+mean(previsao.floresta==teste$Exited)
+
+plot(floresta.churn)
+
+#Floresta aleatoria sem a variavel menos importante(HasCrCard) aparecida no varImpPlot
+
+floresta.churn<-randomForest(formula=Exited~.-HasCrCard,data=treino,ntree=500, importance = TRUE)
+
+varImpPlot(floresta.churn)
+
+previsao.floresta<-predict(floresta.churn,newdata=teste,type="class")
+mean(previsao.floresta==teste$Exited)
+
+plot(floresta.churn)
+
+
+
+
+                                
 
 
 
