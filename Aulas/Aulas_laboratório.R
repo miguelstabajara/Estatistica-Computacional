@@ -740,6 +740,142 @@ mean(previsao.floresta==teste$Exited)
 
 plot(floresta.churn)
 
+#Aula 03/04
+data(iris)
+dados<-iris[,-5]
+dados_padronizados<-scale(dados) #Leva todas as variaveis para mesma escala
+
+#O metodo abaixo é ward.D2, é mais eficiente
+matriz_distancia<-dist(dados_padronizados)
+modelo<-hclust(matriz_distancia,method="ward.D2")
+
+plot(modelo)
+rect.hclust(modelo,k=3)
+
+aglomerados<-cutree(modelo,k=3)
+aglomerados
+
+iris$Species[aglomerados==1]
+#O metodo abaixo é single, mas menos eficiente
+matriz_distancia<-dist(dados_padronizados)
+modelo<-hclust(matriz_distancia,method="ward.D2")
+plot(modelo)
+rect.hclust(modelo,k=3)
+aglomerados<-cutree(modelo,k=3)
+aglomerados
+iris$Species[aglomerados==1]
+
+#Teste
+library(rvest)
+library(ggplot2)
+library(tidyverse)
+url<-"https://en.wikipedia.org/wiki/List_of_U.S._states_and_territories_by_violent_crime_rate"
+
+html<-read_html(url)
+dados<-(html |>
+              html_element("table") |>
+              html_table())
+          
+dados<-data.frame(dados)   
+str(dados)
+colnames(dados)[c(2,6)]<-c("violent.crime","assault")
+
+estados<-map_data("state")
+
+?map_data     
+
+dados$region <- tolower(dados$Location)
+dados<-dados[,-1]
+
+dados_gerais<-left_join(estados,dados,by="region")
+
+ggplot(data=dados_gerais)+
+    geom_polygon(aes(x = long,y = lat,group = group,fill=Homicide))+
+    theme(title = element_text(family="mono"),legend.position="bottom")+
+    labs(title="Taxa de homicidio")+
+    scale_fill_gradient(low = "#56B1F7",
+                        high = "#132B43",)+
+    theme_void()
+
+?scale_fill_gradient
+
+                #Aula 10/04
+n<-10000
+resultados<-sample(1:6,size=n,replace=TRUE)
+mean(resultados)
+soma_acumulada<-cumsum(resultados)/(1:n)
+plot(x = 1:n,y=soma_acumulada,type = "l")
+abline(h=3.5,col="red")
+
+k<-1000000
+acertos<-c()
+for(j in 1:k){
+    if(sum(sample(1:6,size=2,replace=TRUE))==7) acertos[j]<-1
+    else acertos[j]<-0
+}
+mean(acertos)
+
+n<-15
+for(i in 1:10000){
+    x<-sample(1:365,size=n,replace=TRUE)
+    resultado[i]<-length(unique(x))<n
+}
+mean(resultado)
+
+
+library(gganimate)
+library(ggplot2)
+library(png)
+library(gifski)
+
+x<-runif(1000000,-1,1)
+y<-runif(1000000,-1,1)
+c(x,y)
+circulo<-x^2+y^2<=1
+4*mean(circulo)
+orde<-1:1000
+
+dados<-data.frame(x,y,circulo,orde)
+
+ggplot(dados,aes(x,y,col=circulo))+
+    geom_point()+
+    coord_fixed()+
+    transition_states(orde)+
+    shadow_mark(past=TRUE)
+
+
+library(webdriver)
+library(httr)
+url<-"https://blaze1.space/api/roulette_games/history?startDate=2024-03-13T16:33:55.255Z&endDate=2024-04-12T16:33:55.256Z&page=1"
+#Para uma página
+dados<-content(GET(url))
+dados$records[[2]]$color
+sorteio<-c()
+for(j in 1:100){
+    sorteio[j]<-dados$records[[j]]$color
+}
+sorteio
+prop.table(table(sorteio))
+#Para varias páginas
+urlbase<-"https://blaze1.space/api/roulette_games/history?startDate=2024-03-13T16:33:55.255Z&endDate=2024-04-12T16:33:55.256Z&page="
+for(k in 1:10){
+    url<- paste0(urlbase,k)
+    dados<-content(GET(url))
+    for(j in 1:100){
+        sorteio<-c(sorteio,dados$records[[j]]$color)
+    }
+}
+sorteio
+prop.table(table(sorteio))
+
+f<-c()
+for(i in 1:100000){
+    x[i]<-runif(1,0,1)
+    f[i]<-exp(-(x[i]**2)/2)
+}
+mean(f)/sqrt(2*pi)
+
+
 
 
 
